@@ -11,7 +11,12 @@ git clone https://github.com/NiceWin221/user_task_dashboard.git && cd user_task_
 composer install && cp .env.example .env && php artisan key:generate
 # atur DB_CONNECTION, DB_DATABASE, DB_USERNAME, DB_PASSWORD di .env
 php artisan migrate --seed && php artisan serve
+```
 
-🔗 Akses Frontend
-Buka di browser:
+🔗 Akses Frontend  
+Buka di browser:  
 http://localhost:8000/frontend/index.html
+
+Login dengan akun  
+email: admin@gmail.com  
+password: testing12345
