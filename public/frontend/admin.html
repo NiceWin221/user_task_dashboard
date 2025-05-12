@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
+        />
+        <title>Admin Page</title>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" href="index.html">Home</a>
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-toggle="collapse"
+                data-target="#navbarNav"
+                aria-controls="navbarNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html">Login</a>
+                    </li>
+                    <li class="nav-item" id="admin-link">
+                        <a class="nav-link" href="admin.html">Admin Panel</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div class="container mt-4">
+            <h1>Admin Page</h1>
+
+            <!-- Create New User Form -->
+            <h2>Create New User</h2>
+            <form id="create-user-form" class="mb-4">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="name"
+                        required
+                    />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        required
+                    />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="password"
+                        required
+                    />
+                </div>
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-control" id="role">
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-control" id="status">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    Create User
+                </button>
+            </form>
+
+            <!-- User List -->
+            <h2>User List</h2>
+            <table id="user-table" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <script>
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "login.html";
+            }
+
+            fetch("/api/user", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+                .then((response) => response.json())
+                .then((user) => {
+                    if (user.role !== "admin") {
+                        window.location.href = "index.html";
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching user data:", error);
+                    window.location.href = "index.html";
+                });
+
+            const createUserForm = document.getElementById("create-user-form");
+            const userTableBody = document
+                .getElementById("user-table")
+                .getElementsByTagName("tbody")[0];
+
+            window.onload = () => {
+                fetchUsers();
+            };
+
+            function fetchUsers() {
+                fetch("/api/users", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                })
+                    .then((response) => response.json())
+                    .then((users) => {
+                        userTableBody.innerHTML = "";
+                        users.forEach((user) => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.role}</td>
+                        <td><span class="badge bg-${
+                            user.status ? "success" : "danger"
+                        }">${user.status ? "Active" : "Inactive"}</span></td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="editUser('${
+                                user.id
+                            }')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteUser('${
+                                user.id
+                            }')">Delete</button>
+                        </td>
+                    `;
+                            userTableBody.appendChild(row);
+                        });
+                    });
+            }
+
+            // Handle create user form submission
+            createUserForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                const name = document.getElementById("name").value;
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
+                const role = document.getElementById("role").value;
+                const status =
+                    document.getElementById("status").value === "true";
+
+                const userData = {
+                    name,
+                    email,
+                    password,
+                    role,
+                    status,
+                };
+
+                console.log(userData);
+
+                fetch("/api/users", {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(userData),
+                })
+                    .then((response) => response.json())
+                    .then((result) => {
+                        console.log(result);
+                        if (result.message === "User created successfully") {
+                            fetchUsers(); // Reload user list
+                            alert("User created successfully!");
+                            createUserForm.reset();
+                        } else {
+                            alert("Failed to create user: " + result.message);
+                        }
+                    });
+            });
+
+            // Edit user function (You can implement edit logic)
+            function editUser(userId) {
+                // Handle user edit logic
+                alert("Editing user ID: " + userId);
+            }
+
+            // Delete user function
+            function deleteUser(userId) {
+                if (confirm("Are you sure you want to delete this user?")) {
+                    fetch(`/api/users/${userId}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    })
+                        .then((response) => response.json())
+                        .then((result) => {
+                            if (
+                                result.message === "User deleted successfully."
+                            ) {
+                                fetchUsers(); // Reload user list after deletion
+                                alert("User deleted successfully!");
+                            } else {
+                                alert(
+                                    "Failed to delete user: " + result.message
+                                );
+                            }
+                        });
+                }
+            }
+        </script>
+    </body>
+</html>
