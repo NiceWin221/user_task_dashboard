@@ -1,4 +1,4 @@
-# 🗂️ User & Task Management API - Laravel 10
+# 🗂️ User & Task Management API - Laravel 12
 
 RESTful API sederhana untuk manajemen user & task berbasis role (admin/user).
 
