@@ -28,7 +28,11 @@ class TaskController extends Controller
 
         $tasks = $query->get();
 
-        return response()->json($tasks);
+        if ($tasks->isEmpty()) {
+            return response()->json(['message' => 'No tasks found'], 404);
+        }
+
+        return response()->json($tasks, 200);
     }
 
 

@@ -18,5 +18,5 @@ Buka di browser:
 http://localhost:8000/frontend/index.html
 
 Login dengan akun  
-email: admin@gmail.com  
+email: admin@example.com  
 password: testing12345

@@ -11,7 +11,7 @@ class TaskService
   public function logOverdueTasks()
   {
     $overdueTasks = Task::where('due_date', '<', now())
-      ->where('status', '!=', 'completed')
+      ->where('status', '!=', 'done')
       ->get();
 
     foreach ($overdueTasks as $task) {
